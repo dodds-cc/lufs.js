@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Biquad Filter Example</title>
+  <script src="../biquad-filter.min.js"></script>
+</head>
+<body>
+  <h1>Biquad Filter library</h2>
+    <p>See the <a href="https://github.com/Ircam-RnD/biquad-filter">repository README</a> for explanations and page source code for an example on how to use the BiquadFilter.</p>
+    <audio id="source" src="./snd/breakbeat.wav" controls loop></audio>
+    <script>
+  // The coefficients of the cascade of biquad filters.
+  var coef = [0.90338, -0.80434, 0.52878, -1.3264, 0.68112, -1.8567, 0.92083, -1.8476,
+  0.92028, -1.8483, 0.95257, -1.8367, 0.93335, -1.9599, 0.98291, -1.9442, 0.96724,
+  -1.9795, 0.9825, -1.977, 0.97983, -0.45444, 0.62182, 0.18046, 0.78331];
+
+  // We need an audio context
+  var audioContext = new AudioContext();
+  var targetNode = audioContext.destination;
+
+  // Create Audio Nodes
+  var mediaElement = document.getElementById('source');
+  var player = audioContext.createMediaElementSource(mediaElement);
+  var scriptProcessor = audioContext.createScriptProcessor(1024, 1, 1);
+  // Connect Audio Nodes
+  player.connect(scriptProcessor);
+  scriptProcessor.connect(targetNode);
+
+  // Create biquad filter module
+  var biquadFilter = new BiquadFilter();
+  // Set the coefficients and indicate the number of biquads
+  biquadFilter.setCoefficients(coef);
+
+  // Process the data inside the scriptProcessor process
+  scriptProcessor.onaudioprocess = function(event){
+    // Get the input buffer
+    var inputBuffer = event.inputBuffer.getChannelData(0);
+    // Get the ouput buffer
+    var outputBuffer = event.outputBuffer.getChannelData(0);
+    // Process the data
+    biquadFilter.process(inputBuffer, outputBuffer);
+  }
+  </script>
+</body>
+</html>
