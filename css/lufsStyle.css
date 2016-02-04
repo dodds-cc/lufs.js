@@ -8,3 +8,17 @@ body {
 canvas {
 
 }
+
+audio {
+	width:400px;
+	margin-bottom:20px;
+}
+
+
+#lufsContainer {
+	width:400px;
+	margin: 0 auto;
+	height:400px;
+	margin-bottom:20px;
+	
+}

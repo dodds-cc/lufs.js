@@ -25,11 +25,7 @@ lufsRadar.prototype.init = function () {
 	this.container.style.width = this.width;
 	this.container.style.margin = '0 auto';
 
-	if (this.title) {
-		this.containerTitle = document.createElement('h1');
-		this.containerTitle.innerHTML = this.title;
-		this.container.appendChild(this.containerTitle);
-	}
+	
 	
 	this.runTheClock = false;
 	this.timeDisplay = document.createElement('h4');
@@ -42,7 +38,7 @@ lufsRadar.prototype.init = function () {
 	
 	this.controls = {};
 	this.controls.playButton = document.createElement('button');
-	this.controls.playButton.innerHTML = 'Play';
+	this.controls.playButton.innerHTML = 'Analyse';
 	this.controls.playButton.onclick = function() {
 		_this.controls.playButton.style.display = 'none';
 		_this.controls.stopButton.style.display = '';
@@ -172,6 +168,7 @@ lufsRadar.prototype.drawGuides = function () {
 	    this.canvasContext.arc(this.width/2, this.width/2, (((this.width/2)/this.scale.length) * (i+1)), 0, 2 * Math.PI, false);
 	    this.canvasContext.closePath();
 	    this.canvasContext.stroke();
+	    this.canvasContext.font = "20px Arial";
 	}
 };
 

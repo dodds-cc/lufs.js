@@ -1,9 +1,7 @@
 lufsAnalyser = function(_opt) {
+
 	var opt = {
-		title: false,
-		width:400,
-		height:400,
-		audioSourceUrl: false,
+		nodeToAnalyse: null,
 		delegate:null,
 		redrawCallback: function() {}
 	};
@@ -11,11 +9,7 @@ lufsAnalyser = function(_opt) {
 
 	this.delegate = opt.delegate;
 	this.redrawCallback = opt.redrawCallback;
-
-	this.title = opt.title;
-	this.width = opt.width;
-	this.height = opt.height;
-	this.audioSourceUrl = opt.audioSourceUrl;
+	this.nodeToAnalyse = opt.nodeToAnalyse;
 	this.duration = false;
 	this.audioContext = false;
 	this.audioSourceNode = false;
@@ -28,7 +22,7 @@ lufsAnalyser = function(_opt) {
 	}
 	this.bin3000Left = [];
 	this.bin3000Right = [];
-	for (var i = 0; i < 132300; i++) {
+	for (var j = 0; j < 132300; j++) {
 		this.bin3000Left.push(0);
 		this.bin3000Right.push(0);
 	}
@@ -41,7 +35,6 @@ lufsAnalyser = function(_opt) {
 	this.momentaryCount = 17640;
 	this.momentaryNumberOfCycles = 0;
 
-	var _this = this;
 	this.init();
 };
 
@@ -50,24 +43,24 @@ lufsAnalyser.prototype.init = function() {
 	this.createAudioMatrix();
 	this.setMasterGain(1);
 	this.connectNodes();
-	this.loadSound(this.audioSourceUrl);
 	this.playing = false;
 	this.lufsObject = {
 		momentaryReading : 0,
 		shortTermReading :0,
 	};
+	//this.play();
 
 };
 
 lufsAnalyser.prototype.createAudioMatrix = function() {
-	this.audioContext = new AudioContext();
+	this.audioContext = this.nodeToAnalyse.context;
 	this.audioSourceNode = this.audioContext.createBufferSource();
 	this.masterGainNode = this.audioContext.createGain();
 	this.javascriptNode = this.audioContext.createScriptProcessor(2048, 2, 2);
 	this.filterOne = this.audioContext.createBiquadFilter();
 	this.filterTwo = this.audioContext.createBiquadFilter();
 
-	this.leftChannelGain = this.audioContext.createGain();
+	this.channelGain = this.audioContext.createGain();
     this.splitterNode = this.audioContext.createChannelSplitter();
 };
 
@@ -80,7 +73,7 @@ lufsAnalyser.prototype.applyKWeighting = function() {
 };
 
 lufsAnalyser.prototype.applyChannelGain = function () {
-	this.leftChannelGain.gain.value = 0.3;
+	this.channelGain.gain.value = 0.3;
 
 };
 
@@ -88,43 +81,31 @@ lufsAnalyser.prototype.setMasterGain = function(gain) {
 	this.masterGainNode.gain.value = gain;
 };
 
-
-lufsAnalyser.prototype.loadSound = function(url) {
-	var _this = this;
-	var request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
-    request.onload = function() {
-        _this.audioContext.decodeAudioData(request.response, function(buffer) {
-        	_this.audioSourceNode.buffer = buffer;
-    		_this.audioSourceNode.loop = true;
-    		_this.duration = buffer.length;
-        }, _this.onError);
-    };
-    request.send();
-};
-
 lufsAnalyser.prototype.connectNodes = function() {
+	var _this = this;
 
-	this.audioSourceNode.connect(this.filterOne);
+	this.nodeToAnalyse.connect(this.filterOne);
+
 	this.filterOne.connect(this.filterTwo);
-	this.filterTwo.connect(this.leftChannelGain);
-	this.leftChannelGain.connect(this.splitterNode);
+	this.filterTwo.connect(this.channelGain);
 	this.applyKWeighting();
 	this.applyChannelGain();
+
+	this.channelGain.connect(this.splitterNode);
 	this.splitterNode.connect(this.javascriptNode);
 	this.javascriptNode.connect(this.audioContext.destination);
 
 	this.audioSourceNode.connect(this.masterGainNode);
-	this.masterGainNode.connect(this.audioContext.destination);
-	var _this = this;
+	//connect output to speakers
+	//this.masterGainNode.connect(this.audioContext.destination);
+
 	this.javascriptNode.onaudioprocess = function(e) {
 		_this.processAudioData.call(_this, e);
 	};
 };
 
 lufsAnalyser.prototype.play = function () {
-	this.audioSourceNode.start(0);
+	//this.audioSourceNode.start(0);
 	this.playing = true;
 	this.delegate.setState('playing');
 };
@@ -135,13 +116,7 @@ lufsAnalyser.prototype.stop = function () {
 	this.delegate.setState('stopped');
 };
 
-lufsAnalyser.prototype.getElement = function() {
-	return this.container;
-};
 
-lufsAnalyser.prototype.onError = function(error) {
-	console.log(error);
-};
 lufsAnalyser.prototype.processAudioData = function(e) {
 	if (this.playing) {
 		var leftBuffer = e.inputBuffer.getChannelData(0);
@@ -187,33 +162,26 @@ lufsAnalyser.prototype.pushToShortTerm = function(array, array2) {
 };
 
 lufsAnalyser.prototype.returnMomentaryLUFS = function() {
-	// if(this.momentaryNumberOfCycles === 0) {
-	// 	return 0;
-	// 	console.log('returning 0');
-	// }
-		this.sumOfBin400 = 0;
-		for (var j = 0; j < 17640; j++) {
-			this.sumOfBin400 += (this.bin400Left[j] * this.bin400Left[j]);
-			this.sumOfBin400 += (this.bin400Right[j] * this.bin400Right[j]);
-		}
-		var average = this.sumOfBin400 / (17640 + 17640);
-		this.lufsObject.momentaryReading = -0.691 + (10 * log10(average));
-
+	this.sumOfBin400 = 0;
+	for (var j = 0; j < 17640; j++) {
+		this.sumOfBin400 += (this.bin400Left[j] * this.bin400Left[j]);
+		this.sumOfBin400 += (this.bin400Right[j] * this.bin400Right[j]);
+	}
+	var average = this.sumOfBin400 / (17640 + 17640);
+	this.lufsObject.momentaryReading = -0.691 + (10 * log10(average));
 
 	return this.lufsObject.momentaryReading;
 };
 
 lufsAnalyser.prototype.returnShortTermLUFS = function() {
-	// if(this.shortTermNumberOfCycles === 0) {
-	// 	return 0;
-	// }
-		this.sumOfBin3000 = 0;
-		for (var j = 0; j < 132300; j++) {
-			this.sumOfBin3000 += (this.bin3000Left[j] * this.bin3000Left[j]);
-			this.sumOfBin3000 += (this.bin3000Right[j] * this.bin3000Right[j]);
-		}
-		var average = this.sumOfBin3000 / (132300 + 132300);
-		this.lufsObject.shortTermReading = -0.691 + (10 * log10(average));
+
+	this.sumOfBin3000 = 0;
+	for (var j = 0; j < 132300; j++) {
+		this.sumOfBin3000 += (this.bin3000Left[j] * this.bin3000Left[j]);
+		this.sumOfBin3000 += (this.bin3000Right[j] * this.bin3000Right[j]);
+	}
+	var average = this.sumOfBin3000 / (132300 + 132300);
+	this.lufsObject.shortTermReading = -0.691 + (10 * log10(average));
 	
 	return this.lufsObject.shortTermReading;
 };
@@ -221,3 +189,32 @@ lufsAnalyser.prototype.returnShortTermLUFS = function() {
 lufsAnalyser.prototype.getLUFSObject = function() {
 	return this.lufsObject;
 };
+
+lufsAnalyser.prototype.getElement = function() {
+	return this.container;
+};
+
+lufsAnalyser.prototype.onError = function(error) {
+	console.log(error);
+};
+
+
+
+
+
+
+
+// lufsAnalyser.prototype.loadSound = function(url) {
+// 	var _this = this;
+// 	var request = new XMLHttpRequest();
+//     request.open('GET', url, true);
+//     request.responseType = 'arraybuffer';
+//     request.onload = function() {
+//         _this.audioContext.decodeAudioData(request.response, function(buffer) {
+//         	_this.audioSourceNode.buffer = buffer;
+//     		_this.audioSourceNode.loop = true;
+//     		_this.duration = buffer.length;
+//         }, _this.onError);
+//     };
+//     request.send();
+// };

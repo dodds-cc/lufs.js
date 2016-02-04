@@ -1,17 +1,22 @@
-lufsJS = function () {
-		this.init();
+lufsController = function (_opt) {
+
+	var opt = {
+		nodeToAnalyse: null,
+		elementToAppendTo: null
+	};
+	extend(opt, _opt);
+	this.audioContext = opt.audioContext;
+	this.elementToAppendTo = opt.elementToAppendTo;
+	this.nodeToAnalyse = opt.nodeToAnalyse;
+	this.init();
 	};
 
-lufsJS.prototype.init = function() {
+lufsController.prototype.init = function() {
 	var _this = this;
 
-	
-
 	this.lufsAnalyserOne = new lufsAnalyser({
-		title: '',
-		audioSourceUrl: 'audio/itInterwindes.mp3',
+		nodeToAnalyse: this.nodeToAnalyse,
 		delegate: this,
-		audioContext: null,
 		redrawCallback: function() {
 			//_this.lufsRadarOne.render(_this.getLUFSObject());
 		}
@@ -21,39 +26,39 @@ lufsJS.prototype.init = function() {
 		title: 'LUFS.js demo',
 		delegate: this,
 		radarSpeed:16,
-		width:400,
-		height:400
+		width:this.elementToAppendTo.offsetWidth,
+		height:this.elementToAppendTo.offsetHeight
 	});
-	document.body.appendChild(this.lufsRadarOne.getElement());
+	this.elementToAppendTo.appendChild(this.lufsRadarOne.getElement());
 
 	
 };
 
-lufsJS.prototype.getLUFSObject = function() {
+lufsController.prototype.getLUFSObject = function() {
 	return this.lufsAnalyserOne.getLUFSObject();
 };
 
-lufsJS.prototype.returnMomentaryLUFS = function () {
+lufsController.prototype.returnMomentaryLUFS = function () {
 	return this.lufsAnalyserOne.returnMomentaryLUFS();
 };
 
-lufsJS.prototype.returnShortTermLUFS = function () {
+lufsController.prototype.returnShortTermLUFS = function () {
 	return this.lufsAnalyserOne.returnShortTermLUFS();
 };
 
-lufsJS.prototype.play = function() {
+lufsController.prototype.play = function() {
 	return this.lufsAnalyserOne.play();
 };
 
-lufsJS.prototype.stop = function() {
+lufsController.prototype.stop = function() {
 	return this.lufsAnalyserOne.stop();
 };
 
-lufsJS.prototype.getDuration = function() {
+lufsController.prototype.getDuration = function() {
 	return this.lufsAnalyserOne.duration;
 };
 
-lufsJS.prototype.setState = function(state) {
+lufsController.prototype.setState = function(state) {
 	if(state == 'playing') {
 		this.lufsRadarOne.playing = true;
 		this.lufsRadarOne.startClock();
