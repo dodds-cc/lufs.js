@@ -14,6 +14,12 @@ audio {
 	margin-bottom:20px;
 }
 
+input {
+	border-radius:5px;
+	background:#494949;
+	margin-bottom:20px;
+}
+
 
 #lufsContainer {
 	width:400px;

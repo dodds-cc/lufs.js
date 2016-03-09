@@ -1,0 +1,24 @@
+{
+  "name": "lufs",
+  "version": "1.0.0",
+  "description": "LUFS.js",
+  "main": "index.html",
+  "window": {
+    "title": "lufs.js",
+    "icon": "link.png",
+    "toolbar": false,
+    "frame": true,
+    "width": 450,
+    "height": 750,
+    "position": "mouse",
+    "min_width": 400,
+    "min_height": 200,
+    "max_width": 800,
+    "max_height": 750
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
