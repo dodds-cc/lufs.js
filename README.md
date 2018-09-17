@@ -4,4 +4,4 @@ The aim of this project is a loudness meter visualisation in javascript built on
 
 Demo
 
-http://www.creativelycommon.co.uk/lufsjs/
+http://www.creativelycommon.co.uk/demo/lufsjs/

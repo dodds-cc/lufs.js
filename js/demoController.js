@@ -6,7 +6,7 @@ window.onload = function() {
 
 	audioElement.controls = true;
 	audioElement.crossOrigin = "anonymous";
-	audioElement.src = "http://www2.blackblocs.uk/portfolio/streamProxy.php?server=lyd.nrk.no&port=80&path=nrk_radio_jazz_mp3_h";
+	audioElement.src = "audio/demoSong.mp3";
 	audioElement.loop = true;
 
 	streamSource.connect(nodeToAnalyse);
